@@ -77,6 +77,7 @@ public final class Worldswap_spigot extends JavaPlugin {
 
                 // location in alter Welt holen
                 Location oldLocation = player.getLocation();
+                oldLocation.setWorld(Bukkit.getWorld(newWorldName));
 
                 // Konsole nutzt mvtp auf Spieler, sodass der keine Permission braucht
                 getServer().dispatchCommand(getServer().getConsoleSender(), "mvtp "+ player.getName() + " " + newWorldName);
