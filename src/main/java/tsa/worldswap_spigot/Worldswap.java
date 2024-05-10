@@ -3,6 +3,7 @@ package tsa.worldswap_spigot;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -127,7 +128,13 @@ public final class Worldswap extends JavaPlugin {
         int blockY = loc.getBlockY();
         int blockZ = loc.getBlockZ();
 
-        Block block = loc.getWorld().getBlockAt(blockX, blockY, blockZ);
+        World world = loc.getWorld();
+
+        if(world == null) {
+            getLogger().log(Level.WARNING, "Could not find world in ensureOxygen() :(");
+        }
+        else {
+        Block block = world.getBlockAt(blockX, blockY, blockZ);
         if (block != null && block.getType() != Material.AIR) {
             // Find the next highest air block
             while (block.getType() != Material.AIR) {
@@ -142,6 +149,7 @@ public final class Worldswap extends JavaPlugin {
 
             player.teleport(newLocation);
             getLogger().log(Level.FINEST, "Teleported player to next highest air block.");
+        }
         }
     }
 }
