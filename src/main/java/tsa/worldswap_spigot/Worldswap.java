@@ -75,18 +75,14 @@ public final class Worldswap extends JavaPlugin {
                 return true;
             }
 
-            // schauen ob es die neue Welt gibt
-
-            World newWorld = Bukkit.getWorld(newWorldName);
-
-            if (newWorldName != null && newWorld != null) {
+            if (newWorldName != null && Bukkit.getWorld(newWorldName) != null) {
 
                 //hole Zeit aus alter Welt
                 long time = player.getWorld().getGameTime();
 
                 // location in alter Welt holen
                 Location oldLocation = player.getLocation();
-                oldLocation.setWorld(newWorld);
+                oldLocation.setWorld(Bukkit.getWorld(newWorldName));
 
                 // Konsole nutzt mvtp auf Spieler, sodass der keine Permission braucht
                 getServer().dispatchCommand(getServer().getConsoleSender(), "mvtp "+ player.getName() + " " + newWorldName);
@@ -94,7 +90,7 @@ public final class Worldswap extends JavaPlugin {
                 // teleport an gleiche Stelle wie vorher
                 player.teleport(oldLocation);
 
-                ensureO2(oldLocation, newWorld, player);
+                ensureO2(oldLocation, Bukkit.getWorld(newWorldName), player);
 
                 //setzt Zeit sodass Beleuchtung gleich ist
                 getServer().dispatchCommand(getServer().getConsoleSender(), "time set "+ time + " " + newWorldName);
