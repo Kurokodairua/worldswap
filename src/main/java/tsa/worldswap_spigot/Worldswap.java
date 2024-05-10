@@ -3,7 +3,6 @@ package tsa.worldswap_spigot;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -23,14 +22,13 @@ public final class Worldswap extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        // Spielerdaten-Datei initialisieren
         File dataFolder = getDataFolder();
         if (!dataFolder.exists()) {
             dataFolder.mkdirs();
         }
         File configFile = new File(getDataFolder(), "config.yml");
 
-        // wenn config file noch nicht existiert, erstellen wir es
+        // create config file if missing
         if (!configFile.exists()) {
             try {
                 configFile.createNewFile();
@@ -42,7 +40,7 @@ public final class Worldswap extends JavaPlugin {
                 getLogger().info("Config file not found. Creating default config.");
 
             } catch (IOException e) {
-                getLogger().log(Level.SEVERE, "Fehler beim Erstellen der config-Datei.", e);
+                getLogger().log(Level.SEVERE, "error creating config file :(", e);
             }
         }
         config = YamlConfiguration.loadConfiguration(configFile);
@@ -75,31 +73,32 @@ public final class Worldswap extends JavaPlugin {
                 return true;
             }
 
-            // schauen ob es die neue Welt gibt
+            if (newWorldName != null && Bukkit.getWorld(newWorldName) != null) {
 
-            World newWorld = Bukkit.getWorld(newWorldName);
+                //gets time from old world
+               long time = player.getWorld().getTime();
 
-            if (newWorldName != null && newWorld != null) {
-
-                //hole Zeit aus alter Welt
-                long time = player.getWorld().getGameTime();
-
-                // location in alter Welt holen
+                // get location from old world, change world from location to the new one
                 Location oldLocation = player.getLocation();
-                oldLocation.setWorld(newWorld);
+                oldLocation.setWorld(Bukkit.getWorld(newWorldName));
 
-                // Konsole nutzt mvtp auf Spieler, sodass der keine Permission braucht
+                // console uses mvtp, player doesn't need the permission
                 getServer().dispatchCommand(getServer().getConsoleSender(), "mvtp "+ player.getName() + " " + newWorldName);
 
-                // teleport an gleiche Stelle wie vorher
+                // teleports player back to the same position as before, just in the other world
                 player.teleport(oldLocation);
 
-                ensureO2(oldLocation, newWorld, player);
+                // teleports to first air block above player
+               ensureOxygen(player);
 
-                //setzt Zeit sodass Beleuchtung gleich ist
-                getServer().dispatchCommand(getServer().getConsoleSender(), "time set "+ time + " " + newWorldName);
+                // sets time to match other world, ensures lighting is the same uwu
+               getServer().dispatchCommand(getServer().getConsoleSender(), "time set "+ time + " " + newWorldName);
 
-                return true;}
+               // changes weather to clear
+                getServer().dispatchCommand(getServer().getConsoleSender(), "weather " + newWorldName + " clear");
+
+                return true;
+            }
             else {
                 getLogger().log(Level.WARNING, "World '" + newWorldName + "' does not exist.");
                 return true;
@@ -119,19 +118,28 @@ public final class Worldswap extends JavaPlugin {
         return false;
     }
 
-    private void ensureO2(Location oldLocation, World newWorld, Player player) {
-        int blockX = oldLocation.getBlockX();
-        int blockY = oldLocation.getBlockY();
-        int blockZ = oldLocation.getBlockZ();
+    /**
+     * teleports to first air block above player
+     */
+    private void ensureOxygen(Player player) {
+      Location loc = player.getLocation();
+        int blockX = loc.getBlockX();
+        int blockY = loc.getBlockY();
+        int blockZ = loc.getBlockZ();
 
-        Block block = newWorld.getBlockAt(blockX, blockY, blockZ);
-        if (block.getType() != Material.AIR) {
+        Block block = loc.getWorld().getBlockAt(blockX, blockY, blockZ);
+        if (block != null && block.getType() != Material.AIR) {
             // Find the next highest air block
             while (block.getType() != Material.AIR) {
                 block = block.getRelative(0, 1, 0);
             }
             // Teleport player to the next highest air block
             Location newLocation = block.getLocation().add(0.5, 1, 0.5);
+
+            // hard set yaw and pitch (in Germany we call this Blickrichtung, it richts the Blick)
+            newLocation.setYaw(loc.getYaw());
+            newLocation.setPitch(loc.getPitch());
+
             player.teleport(newLocation);
             getLogger().log(Level.FINEST, "Teleported player to next highest air block.");
         }
