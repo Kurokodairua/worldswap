@@ -1,0 +1,12 @@
+name: worldswap_spigot
+version: '${project.version}'
+main: tsa.worldswap_spigot.Worldswap_spigot
+api-version: '1.20'
+author: Kurokodairua
+commands:
+  swap:
+    description: Swaps between MV worlds
+    usage: /swap
+  wsreload:
+    description: Reloads config
+    usage: /wsreload
